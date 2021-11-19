@@ -102,7 +102,7 @@ def train_model(model, loss_function, optimizer, scheduler, num_epochs=25):
             if phase == 'val' and epoch_loss < best_loss:
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
-                torch.save(model.state_dict(), 'models/LSTM_v0.pth')
+                torch.save(model.state_dict(), 'models/LSTM_v0_'+dataset+'.pth')
 
     time_elapsed = time.time() - since
     print('Training completed in {:.0f}m {:.0f}s'.format(
@@ -221,48 +221,6 @@ class LSTM_RUL_Estimator(nn.Module):
         return pred[:, -1, :]
 
 
-def collate_batch(batch):
-    data = [item[0] for item in batch]
-    data = pad_sequence(data, batch_first=True)
-    targets = [item[1].unsqueeze_(0) for item in batch]
-    targets = pad_sequence(targets, batch_first=True)
-
-    return data, targets
-
-# seq_len = 31
-# df_data = pd.read_csv('data/CMAPSSData/test_FD001.csv', sep=' ')
-# df_data = df_data.iloc[:, 1:27]
-# feature_columns = df_data.columns[2:]
-# id_df = df_data[df_data['id'] == 1]
-# def gen_sequence(id_df, feature_columns):
-#     data_array = id_df[feature_columns].values
-#     num_elements = data_array.shape[0]
-#     if (num_elements != seq_len):
-#         for start, stop in zip(range(0, num_elements - seq_len), range(seq_len, num_elements)):
-#             yield data_array[start:stop, :]
-#     else:
-#         yield data_array[:num_elements, :]
-#
-#
-# list1 = [5, 1, 2, 10, 3, 15, 14, 4]
-# list2 = [10+i for i in list1 if i >= 5]
-#
-# seq_gen = (list(gen_sequence(df_data[df_data['id'] == id], feature_columns))
-#                         for id in df_data['id'].unique() if
-#                         len(df_data[df_data['id'] == id]) > seq_len-1)
-#
-# for seq in seq_gen:
-#     print(np.asarray(seq).shape)
-#
-# seq_data = np.vstack(list(seq_gen)).astype(np.float32)
-#
-# len(seq_gen)
-# print(seq_gen[28].shape)
-#
-# for i in range(len(seq_gen)):
-#     print(seq_gen[i].shape)
-
-
 class CMAPSSDataset(Dataset):
     """CMAPSS dataset."""
 
@@ -330,7 +288,8 @@ if __name__ == '__main__':
     # batch_size = 2944
     batch_size = 1024
     sequence_length = 40
-    cmapss_dataset = {x: CMAPSSDataset(csv_file='data/CMAPSS/'+x+'_FD001.csv',
+    dataset = 'FD002'
+    cmapss_dataset = {x: CMAPSSDataset(csv_file='data/CMAPSS/'+x+'_'+dataset+'.csv',
                                        sep=' ', seq_len=sequence_length)
                       for x in ['train', 'val', 'test']}
 
@@ -405,13 +364,13 @@ if __name__ == '__main__':
                                     hidden_dim=100, dropout=0.5,
                                     seq_length=sequence_length,
                                     num_layers=3, output_dim=1)
-    if os.path.exists('models/LSTM_v0.pth'):
-        best_model.load_state_dict(torch.load('models/LSTM_v0.pth'))
+    if os.path.exists('models/LSTM_v0_'+dataset+'.pth'):
+        best_model.load_state_dict(torch.load('models/LSTM_v0_'+dataset+'.pth'))
         best_model.to(device)
         print('Loaded LSTM_v0 model.')
 
     # load the scaler
-    target_scaler = load(open('data/CMAPSS/target_scaler_FD001.pkl', 'rb'))
+    target_scaler = load(open('data/CMAPSS/target_scaler_'+dataset+'.pkl', 'rb'))
 
     # best_model = lstm_model
     # test_data, test_labels = next(iter(dataloaders['test']))
