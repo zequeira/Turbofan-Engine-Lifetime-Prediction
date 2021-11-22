@@ -173,6 +173,19 @@ class LSTMRul(pl.LightningModule):
         self.linear = nn.Linear(in_features=hidden_dim * 2, out_features=output_dim)
 
     def forward(self, x):
+        # Initialize hidden state with zeros
+        # h0 = torch.zeros(self.num_layers, input.size(0), self.hidden_dim).requires_grad_() #
+        # h0 = torch.zeros(self.num_layers * 2, input.size(0), self.hidden_dim).requires_grad_().to(device)
+        # Initialize cell state
+        # c0 = torch.zeros(self.num_layers, input.size(0), self.hidden_dim).requires_grad_() # .to(device)
+        # c0 = torch.zeros(self.num_layers * 2, input.size(0), self.hidden_dim).requires_grad_().to(device)
+
+        # 28 time steps
+        # We need to detach as we are doing truncated backpropagation through time (BPTT)
+        # If we don't, we'll backprop all the way to the start even after going through another batch
+        # lstm_out, (hn, cn) = self.lstm(input.float(), (h0, c0))
+        # lstm_out, _ = self.lstm(input, (h0, c0))
+
         lstm_out, _ = self.lstm(x)
         pred = torch.relu(self.linear(lstm_out))
         return pred[:, -1, :]

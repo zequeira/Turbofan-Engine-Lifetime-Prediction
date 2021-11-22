@@ -201,18 +201,6 @@ class LSTM_RUL_Estimator(nn.Module):
         self.linear = nn.Linear(in_features=self.hidden_dim * 2, out_features=output_dim)
 
     def forward(self, input):
-        # Initialize hidden state with zeros
-        # h0 = torch.zeros(self.num_layers, input.size(0), self.hidden_dim).requires_grad_() #
-        # h0 = torch.zeros(self.num_layers * 2, input.size(0), self.hidden_dim).requires_grad_().to(device)
-        # Initialize cell state
-        # c0 = torch.zeros(self.num_layers, input.size(0), self.hidden_dim).requires_grad_() # .to(device)
-        # c0 = torch.zeros(self.num_layers * 2, input.size(0), self.hidden_dim).requires_grad_().to(device)
-
-        # 28 time steps
-        # We need to detach as we are doing truncated backpropagation through time (BPTT)
-        # If we don't, we'll backprop all the way to the start even after going through another batch
-        # lstm_out, (hn, cn) = self.lstm(input.float(), (h0, c0))
-        # lstm_out, _ = self.lstm(input, (h0, c0))
         lstm_out, _ = self.lstm(input)
 
         # Index hidden state of last time step
@@ -288,7 +276,7 @@ if __name__ == '__main__':
     # batch_size = 2944
     batch_size = 1024
     sequence_length = 40
-    dataset = 'FD002'
+    dataset = 'FD001'
     cmapss_dataset = {x: CMAPSSDataset(csv_file='data/CMAPSS/'+x+'_'+dataset+'.csv',
                                        sep=' ', seq_len=sequence_length)
                       for x in ['train', 'val', 'test']}
@@ -312,7 +300,6 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
-    # device='cpu'
     lstm_model = LSTM_RUL_Estimator(n_features=sample_data.shape[2],
                                     hidden_dim=100, dropout=0.5,
                                     seq_length=sequence_length,
