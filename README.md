@@ -42,7 +42,7 @@ A `train_DS03.csv`, `val_DS03.csv`, and `test_DS03.csv` csv file is created.
 
 | Sub-dataset | Validation (RMSE) | Test (RMSE) |
 | ----------- | ----------------- | ----------- |
-| DS03        |                   | 8.67        |
+| DS03        | 10.1              | 8.67        |
 
 
 ### References
